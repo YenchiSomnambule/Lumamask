@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lumamask</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-app:        #08090a;
+    --bg-surface:    #111318;
+    --bg-elevated:   #1a1d24;
+    --bg-border:     #2a2d36;
+
+    --text-primary:  #e8eaf0;
+    --text-secondary:#8b8fa8;
+    --text-muted:    #4a4e63;
+
+    --accent:        #5e6ad2;
+    --accent-hover:  #6b77e0;
+
+    --chip-person-bg:   #1d3557; --chip-person-text:   #93c5fd;
+    --chip-org-bg:      #2d1b6e; --chip-org-text:      #c4b5fd;
+    --chip-money-bg:    #14532d; --chip-money-text:    #86efac;
+    --chip-iban-bg:     #450a0a; --chip-iban-text:     #fca5a5;
+    --chip-email-bg:    #431407; --chip-email-text:    #fdba74;
+    --chip-phone-bg:    #164e63; --chip-phone-text:    #67e8f9;
+    --chip-location-bg: #3b1a0a; --chip-location-text: #fcd34d;
+    --chip-default-bg:  #1e2030; --chip-default-text:  #8b8fa8;
+
+    --status-ok:    #22c55e;
+    --status-warn:  #f59e0b;
+    --status-error: #ef4444;
+
+    --text-xs:   11px;
+    --text-sm:   12px;
+    --text-base: 13px;
+    --text-md:   14px;
+    --text-lg:   16px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg-app);
+    color: var(--text-primary);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: var(--text-base);
+    min-height: 100vh;
+    padding: 24px;
+  }
+
+  .page-wrap {
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+
+  /* ── Header ── */
+  .page-header { margin-bottom: 16px; }
+  .page-header h1 {
+    font-size: var(--text-lg);
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.3;
+  }
+  .page-header p {
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    margin-top: 2px;
+  }
+  .page-divider {
+    border: none;
+    border-top: 1px solid var(--bg-border);
+    margin-bottom: 16px;
+  }
+
+  /* ── Two-column layout ── */
+  .layout {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+  }
+
+  /* ── Panels ── */
+  .panel {
+    background: var(--bg-surface);
+    border: 1px solid var(--bg-border);
+    border-radius: 6px;
+  }
+  .input-panel {
+    width: 40%;
+    flex-shrink: 0;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .output-panel {
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* ── Form fields ── */
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field-label {
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+  }
+
+  .input-wrap { position: relative; }
+  input[type="password"], input[type="text"], textarea {
+    width: 100%;
+    background: var(--bg-elevated);
+    border: 1px solid var(--bg-border);
+    border-radius: 4px;
+    color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
+    font-size: var(--text-base);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  input[type="password"], input[type="text"] {
+    padding: 10px 36px 10px 12px;
+  }
+  input[type="password"]::placeholder,
+  input[type="text"]::placeholder,
+  textarea::placeholder { color: var(--text-muted); }
+  input[type="password"]:focus,
+  input[type="text"]:focus,
+  textarea:focus { border-color: var(--accent); }
+
+  .eye-btn {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-muted);
+    padding: 2px;
+    display: flex;
+    align-items: center;
+  }
+  .eye-btn:hover { color: var(--text-secondary); }
+
+  .upload-btn {
+    background: transparent;
+    border: 1px solid var(--bg-border);
+    border-radius: 4px;
+    padding: 5px 10px;
+    font-family: 'Inter', sans-serif;
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    cursor: pointer;
+    margin-bottom: 8px;
+    display: inline-block;
+  }
+  .upload-btn:hover { background: var(--bg-elevated); }
+  #file-input { display: none; }
+
+  textarea {
+    padding: 12px;
+    resize: vertical;
+  }
+  #doc-textarea {
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    min-height: 200px;
+  }
+  #instruction-textarea {
+    min-height: 60px;
+  }
+
+  /* ── Run button ── */
+  .run-btn {
+    width: 100%;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 16px;
+    font-family: 'Inter', sans-serif;
+    font-size: var(--text-sm);
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    cursor: pointer;
+  }
+  .run-btn:hover:not(:disabled) { background: var(--accent-hover); }
+  .run-btn:disabled {
+    background: var(--bg-elevated);
+    color: var(--text-muted);
+    cursor: not-allowed;
+  }
+
+  /* ── Loading steps ── */
+  .loading-steps {
+    display: none;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .loading-steps.visible { display: flex; }
+  .step-row {
+    font-size: var(--text-sm);
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .step-row.active { color: var(--text-secondary); }
+  .step-row.done { color: var(--text-muted); }
+  .spinner {
+    display: inline-block;
+    font-size: 11px;
+    animation: spin-frames 0.8s steps(10, end) infinite;
+  }
+  @keyframes spin-frames {
+    0%   { content: '⠋'; }
+    10%  { content: '⠙'; }
+    20%  { content: '⠹'; }
+    30%  { content: '⠸'; }
+    40%  { content: '⠼'; }
+    50%  { content: '⠴'; }
+    60%  { content: '⠦'; }
+    70%  { content: '⠧'; }
+    80%  { content: '⠇'; }
+    100% { content: '⠏'; }
+  }
+  .step-dot { color: var(--text-muted); }
+
+  /* ── Error message ── */
+  .error-msg {
+    display: none;
+    align-items: center;
+    gap: 6px;
+    color: var(--status-error);
+    font-size: var(--text-sm);
+    margin-top: 8px;
+  }
+  .error-msg.visible { display: flex; }
+  .error-icon {
+    flex-shrink: 0;
+    width: 14px;
+    height: 14px;
+  }
+
+  /* ── Tabs ── */
+  .tab-bar {
+    display: flex;
+    border-bottom: 1px solid var(--bg-border);
+    padding: 0 24px;
+  }
+  .tab-btn {
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    padding: 10px 14px;
+    font-family: 'Inter', sans-serif;
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .tab-btn:hover { color: var(--text-primary); }
+  .tab-btn.active {
+    color: var(--text-primary);
+    border-bottom-color: var(--accent);
+  }
+
+  .tab-content { display: none; padding: 24px; }
+  .tab-content.active { display: block; }
+
+  /* ── Skeleton ── */
+  .skeleton {
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+    padding: 24px;
+  }
+  .skeleton.visible { display: flex; }
+  .skel-line {
+    height: 12px;
+    background: var(--bg-elevated);
+    border-radius: 3px;
+    animation: pulse 1.4s ease-in-out infinite;
+  }
+  .skel-line:nth-child(2) { width: 75%; animation-delay: 0.15s; }
+  .skel-line:nth-child(3) { width: 55%; animation-delay: 0.3s; }
+  @keyframes pulse {
+    0%, 100% { opacity: 0.5; }
+    50%       { opacity: 1; }
+  }
+
+  /* ── Detected tab ── */
+  .entity-list { border-radius: 4px; overflow: hidden; }
+  .entity-row {
+    height: 32px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid var(--bg-border);
+    padding: 0 4px;
+  }
+  .entity-row:last-child { border-bottom: none; }
+  .entity-row:hover { background: var(--bg-elevated); }
+
+  .chip {
+    display: inline-block;
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: var(--text-xs);
+    font-weight: 500;
+    width: 130px;
+    flex-shrink: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .entity-text {
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .count-badge {
+    background: var(--bg-elevated);
+    color: var(--text-secondary);
+    border-radius: 10px;
+    padding: 1px 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: var(--text-xs);
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+
+  .warn-note {
+    color: var(--status-warn);
+    font-size: var(--text-xs);
+    margin-top: 12px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  /* ── Masked / AI Reply tab ── */
+  .code-block {
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-size: var(--text-base);
+    color: var(--text-primary);
+    background: var(--bg-elevated);
+    border-radius: 4px;
+    padding: 16px;
+    white-space: pre-wrap;
+    overflow-y: auto;
+    max-height: 500px;
+    line-height: 1.6;
+  }
+
+  .code-block-label {
+    font-size: var(--text-xs);
+    color: var(--text-muted);
+    margin-bottom: 12px;
+  }
+
+  /* ── Token highlight classes ── */
+  .token { border-radius: 3px; padding: 1px 4px; }
+  .token-person        { background: var(--chip-person-bg);   color: var(--chip-person-text); }
+  .token-organization  { background: var(--chip-org-bg);      color: var(--chip-org-text); }
+  .token-money_amount  { background: var(--chip-money-bg);    color: var(--chip-money-text); }
+  .token-iban_code     { background: var(--chip-iban-bg);     color: var(--chip-iban-text); }
+  .token-email_address { background: var(--chip-email-bg);    color: var(--chip-email-text); }
+  .token-phone_number  { background: var(--chip-phone-bg);    color: var(--chip-phone-text); }
+  .token-location      { background: var(--chip-location-bg); color: var(--chip-location-text); }
+  .token-credit_card   { background: var(--chip-iban-bg);     color: var(--chip-iban-text); }
+  .token-us_ssn        { background: var(--chip-iban-bg);     color: var(--chip-iban-text); }
+  .token-invoice_number { background: var(--chip-email-bg);   color: var(--chip-email-text); }
+  .token-account_number { background: var(--chip-phone-bg);   color: var(--chip-phone-text); }
+
+  /* ── Answer tab ── */
+  .answer-text {
+    font-family: 'Inter', sans-serif;
+    font-size: var(--text-base);
+    color: var(--text-primary);
+    line-height: 1.6;
+    white-space: pre-wrap;
+  }
+  .answer-actions {
+    margin-top: 16px;
+    border-top: 1px solid var(--bg-border);
+    padding-top: 12px;
+    display: flex;
+    gap: 8px;
+  }
+  .ghost-btn {
+    border: 1px solid var(--bg-border);
+    border-radius: 4px;
+    padding: 5px 10px;
+    font-family: 'Inter', sans-serif;
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    background: transparent;
+    cursor: pointer;
+  }
+  .ghost-btn:hover { background: var(--bg-elevated); }
+
+  /* ── Chip colour helpers (for detected tab) ── */
+  .chip-person        { background: var(--chip-person-bg);   color: var(--chip-person-text); }
+  .chip-organization  { background: var(--chip-org-bg);      color: var(--chip-org-text); }
+  .chip-money_amount  { background: var(--chip-money-bg);    color: var(--chip-money-text); }
+  .chip-iban_code     { background: var(--chip-iban-bg);     color: var(--chip-iban-text); }
+  .chip-email_address { background: var(--chip-email-bg);    color: var(--chip-email-text); }
+  .chip-phone_number  { background: var(--chip-phone-bg);    color: var(--chip-phone-text); }
+  .chip-location      { background: var(--chip-location-bg); color: var(--chip-location-text); }
+  .chip-credit_card   { background: var(--chip-iban-bg);     color: var(--chip-iban-text); }
+  .chip-us_ssn        { background: var(--chip-iban-bg);     color: var(--chip-iban-text); }
+  .chip-invoice_number { background: var(--chip-email-bg);   color: var(--chip-email-text); }
+  .chip-account_number { background: var(--chip-phone-bg);   color: var(--chip-phone-text); }
+  .chip-default       { background: var(--chip-default-bg);  color: var(--chip-default-text); }
+
+  /* ── Empty state ── */
+  .empty-state {
+    color: var(--text-muted);
+    font-size: var(--text-sm);
+    text-align: center;
+    padding: 40px 0;
+  }
+</style>
+</head>
+<body>
+<div class="page-wrap">
+
+  <header class="page-header">
+    <h1>Lumamask</h1>
+    <p>Sensitive document processor</p>
+  </header>
+  <hr class="page-divider">
+
+  <div class="layout">
+
+    <!-- ── INPUT PANEL ── -->
+    <div class="panel input-panel">
+
+      <!-- API Key -->
+      <div class="field">
+        <label class="field-label" for="api-key-input">API Key</label>
+        <div class="input-wrap">
+          <input type="password" id="api-key-input" placeholder="sk-ant-…" autocomplete="off">
+          <button class="eye-btn" id="eye-btn" type="button" aria-label="Toggle visibility">
+            <svg class="error-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path id="eye-path"
+                d="M8 3C4.5 3 1.5 5.5 1 8c.5 2.5 3.5 5 7 5s6.5-2.5 7-5c-.5-2.5-3.5-5-7-5zm0 8a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm0-4.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z"
+                fill="currentColor"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Document -->
+      <div class="field">
+        <label class="field-label">Document</label>
+        <button class="upload-btn" id="upload-btn" type="button">↑ Upload .txt</button>
+        <input type="file" id="file-input" accept=".txt">
+        <textarea id="doc-textarea" placeholder="Paste or type document here…"></textarea>
+      </div>
+
+      <!-- Instruction -->
+      <div class="field">
+        <label class="field-label" for="instruction-textarea">Instruction</label>
+        <textarea id="instruction-textarea" placeholder="e.g. Summarise this invoice in two sentences."></textarea>
+      </div>
+
+      <!-- Run button -->
+      <div>
+        <button class="run-btn" id="run-btn" type="button">Run Lumamask</button>
+        <div class="loading-steps" id="loading-steps">
+          <div class="step-row" id="step-1"><span class="step-dot">──</span> Detecting entities…</div>
+          <div class="step-row" id="step-2"><span class="step-dot">──</span> Masking document…</div>
+          <div class="step-row" id="step-3"><span class="step-dot">──</span> Asking Claude…</div>
+          <div class="step-row" id="step-4"><span class="step-dot">──</span> Restoring values…</div>
+        </div>
+        <div class="error-msg" id="error-msg">
+          <svg class="error-icon" viewBox="0 0 14 14" fill="none">
+            <circle cx="7" cy="7" r="6.5" stroke="currentColor"/>
+            <path d="M4.5 4.5l5 5M9.5 4.5l-5 5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+          </svg>
+          <span id="error-text"></span>
+        </div>
+      </div>
+
+    </div><!-- /input-panel -->
+
+    <!-- ── OUTPUT PANEL ── -->
+    <div class="panel output-panel">
+
+      <div class="tab-bar">
+        <button class="tab-btn active" data-tab="detected" id="tab-detected">Detected</button>
+        <button class="tab-btn" data-tab="masked" id="tab-masked">Masked</button>
+        <button class="tab-btn" data-tab="ai-reply" id="tab-ai-reply">AI Reply</button>
+        <button class="tab-btn" data-tab="answer" id="tab-answer">Answer</button>
+      </div>
+
+      <!-- Skeleton shown during load -->
+      <div class="skeleton" id="skeleton">
+        <div class="skel-line"></div>
+        <div class="skel-line"></div>
+        <div class="skel-line"></div>
+      </div>
+
+      <!-- Tab: Detected -->
+      <div class="tab-content active" id="content-detected">
+        <div class="empty-state" id="detected-empty">Run Lumamask to see detected entities.</div>
+        <div class="entity-list" id="entity-list"></div>
+      </div>
+
+      <!-- Tab: Masked -->
+      <div class="tab-content" id="content-masked">
+        <div class="empty-state" id="masked-empty">Run Lumamask to see the masked document.</div>
+        <div class="code-block" id="masked-block" style="display:none"></div>
+      </div>
+
+      <!-- Tab: AI Reply -->
+      <div class="tab-content" id="content-ai-reply">
+        <div class="empty-state" id="ai-reply-empty">Run Lumamask to see the AI reply.</div>
+        <div id="ai-reply-wrap" style="display:none">
+          <div class="code-block-label">Claude's response (tokens preserved)</div>
+          <div class="code-block" id="ai-reply-block"></div>
+        </div>
+      </div>
+
+      <!-- Tab: Answer -->
+      <div class="tab-content" id="content-answer">
+        <div class="empty-state" id="answer-empty">Run Lumamask to see the final answer.</div>
+        <div id="answer-wrap" style="display:none">
+          <div class="answer-text" id="answer-text"></div>
+          <div class="answer-actions">
+            <button class="ghost-btn" id="copy-btn">Copy</button>
+            <button class="ghost-btn" id="save-btn">Save .txt</button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /output-panel -->
+
+  </div><!-- /layout -->
+</div><!-- /page-wrap -->
+
+<script>
+  // ── Chip colour map ──
+  const CHIP_CLASS = {
+    PERSON: 'chip-person',
+    ORGANIZATION: 'chip-organization',
+    MONEY_AMOUNT: 'chip-money_amount',
+    IBAN_CODE: 'chip-iban_code',
+    EMAIL_ADDRESS: 'chip-email_address',
+    PHONE_NUMBER: 'chip-phone_number',
+    LOCATION: 'chip-location',
+    CREDIT_CARD: 'chip-credit_card',
+    US_SSN: 'chip-us_ssn',
+    INVOICE_NUMBER: 'chip-invoice_number',
+    ACCOUNT_NUMBER: 'chip-account_number',
+  };
+
+  function chipClass(type) {
+    return CHIP_CLASS[type] || 'chip-default';
+  }
+
+  // ── Token highlighter ──
+  const TOKEN_RE = /\[([A-Z_]+)_(\d+)\]/g;
+  function escapeHtml(str) {
+    return str
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  }
+  function highlightTokens(text) {
+    return escapeHtml(text).replace(
+      /\[([A-Z_]+)_(\d+)\]/g,
+      (_, type, n) =>
+        `<span class="token token-${type.toLowerCase()}">[${type}_${n}]</span>`
+    );
+  }
+
+  // ── Eye toggle ──
+  const apiInput = document.getElementById('api-key-input');
+  const eyeBtn = document.getElementById('eye-btn');
+  eyeBtn.addEventListener('click', () => {
+    const isPassword = apiInput.type === 'password';
+    apiInput.type = isPassword ? 'text' : 'password';
+    document.getElementById('eye-path').setAttribute('d',
+      isPassword
+        ? 'M1 8s2-6 7-6 7 6 7 6-2 6-7 6-7-6-7-6zm7 3a3 3 0 1 0 0-6 3 3 0 0 0 0 6z'
+        : 'M8 3C4.5 3 1.5 5.5 1 8c.5 2.5 3.5 5 7 5s6.5-2.5 7-5c-.5-2.5-3.5-5-7-5zm0 8a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm0-4.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z'
+    );
+  });
+
+  // ── File upload ──
+  const uploadBtn = document.getElementById('upload-btn');
+  const fileInput = document.getElementById('file-input');
+  const docTextarea = document.getElementById('doc-textarea');
+  uploadBtn.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', () => {
+    const file = fileInput.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => { docTextarea.value = e.target.result; };
+    reader.readAsText(file);
+    fileInput.value = '';
+  });
+
+  // ── Tabs ──
+  const tabBtns = document.querySelectorAll('.tab-btn');
+  function switchTab(name) {
+    tabBtns.forEach(b => {
+      b.classList.toggle('active', b.dataset.tab === name);
+    });
+    document.querySelectorAll('.tab-content').forEach(c => {
+      c.classList.toggle('active', c.id === 'content-' + name);
+    });
+  }
+  tabBtns.forEach(b => b.addEventListener('click', () => switchTab(b.dataset.tab)));
+
+  // ── Loading state ──
+  const runBtn = document.getElementById('run-btn');
+  const loadingSteps = document.getElementById('loading-steps');
+  const skeleton = document.getElementById('skeleton');
+  const errorMsg = document.getElementById('error-msg');
+  const errorText = document.getElementById('error-text');
+
+  const STEPS = ['step-1', 'step-2', 'step-3', 'step-4'];
+
+  function setActiveStep(idx) {
+    STEPS.forEach((id, i) => {
+      const el = document.getElementById(id);
+      el.classList.toggle('active', i === idx);
+      el.classList.toggle('done', i < idx);
+    });
+  }
+
+  function showLoading() {
+    runBtn.disabled = true;
+    runBtn.style.display = 'none';
+    loadingSteps.classList.add('visible');
+    skeleton.classList.add('visible');
+    errorMsg.classList.remove('visible');
+    setActiveStep(0);
+  }
+
+  function hideLoading() {
+    runBtn.disabled = false;
+    runBtn.style.display = '';
+    loadingSteps.classList.remove('visible');
+    skeleton.classList.remove('visible');
+    STEPS.forEach(id => {
+      const el = document.getElementById(id);
+      el.classList.remove('active', 'done');
+    });
+  }
+
+  function showError(msg) {
+    hideLoading();
+    errorText.textContent = msg;
+    errorMsg.classList.add('visible');
+  }
+
+  // ── Render results ──
+  function renderDetected(summary) {
+    const list = document.getElementById('entity-list');
+    const empty = document.getElementById('detected-empty');
+    list.innerHTML = '';
+    const entries = Object.entries(summary);
+    if (entries.length === 0) {
+      empty.style.display = '';
+      return;
+    }
+    empty.style.display = 'none';
+
+    // Update tab label
+    const total = entries.reduce((s, [, c]) => s + c, 0);
+    document.getElementById('tab-detected').textContent = `Detected (${total})`;
+
+    entries.forEach(([type, count]) => {
+      const row = document.createElement('div');
+      row.className = 'entity-row';
+
+      const chip = document.createElement('span');
+      chip.className = `chip ${chipClass(type)}`;
+      chip.textContent = type;
+
+      const badge = document.createElement('span');
+      badge.className = 'count-badge';
+      badge.textContent = count;
+
+      row.appendChild(chip);
+      row.appendChild(badge);
+      list.appendChild(row);
+    });
+  }
+
+  function renderMasked(text) {
+    const block = document.getElementById('masked-block');
+    document.getElementById('masked-empty').style.display = 'none';
+    block.style.display = '';
+    block.innerHTML = highlightTokens(text);
+  }
+
+  function renderAiReply(text) {
+    const wrap = document.getElementById('ai-reply-wrap');
+    document.getElementById('ai-reply-empty').style.display = 'none';
+    wrap.style.display = '';
+    document.getElementById('ai-reply-block').innerHTML = highlightTokens(text);
+  }
+
+  function renderAnswer(text) {
+    const wrap = document.getElementById('answer-wrap');
+    document.getElementById('answer-empty').style.display = 'none';
+    wrap.style.display = '';
+    document.getElementById('answer-text').textContent = text;
+    document.getElementById('tab-answer').textContent = '✓ Answer';
+  }
+
+  // ── Copy / Save ──
+  document.getElementById('copy-btn').addEventListener('click', () => {
+    const text = document.getElementById('answer-text').textContent;
+    navigator.clipboard.writeText(text).catch(() => {});
+  });
+
+  document.getElementById('save-btn').addEventListener('click', () => {
+    const text = document.getElementById('answer-text').textContent;
+    const blob = new Blob([text], { type: 'text/plain' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'lumamask-answer.txt';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
+
+  // ── Run ──
+  let stepTimer = null;
+
+  document.getElementById('run-btn').addEventListener('click', async () => {
+    const apiKey = document.getElementById('api-key-input').value.trim();
+    const text = docTextarea.value.trim();
+    const instruction = document.getElementById('instruction-textarea').value.trim();
+
+    if (!apiKey) { showError('API key is required.'); return; }
+    if (!text)   { showError('Document text is required.'); return; }
+    if (!instruction) { showError('Instruction is required.'); return; }
+
+    showLoading();
+
+    // Simulate step progression with setTimeout
+    stepTimer = setTimeout(() => setActiveStep(1), 1000);
+    const step2Timer = setTimeout(() => setActiveStep(2), 2000);
+
+    try {
+      const res = await fetch('/api/run', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ api_key: apiKey, text, instruction }),
+      });
+
+      clearTimeout(stepTimer);
+      clearTimeout(step2Timer);
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+        showError(err.error || `Server error ${res.status}`);
+        return;
+      }
+
+      setActiveStep(3);
+      await new Promise(r => setTimeout(r, 500));
+
+      const data = await res.json();
+
+      hideLoading();
+      errorMsg.classList.remove('visible');
+
+      renderDetected(data.detection_summary || {});
+      renderMasked(data.masked || '');
+      renderAiReply(data.ai_reply_masked || '');
+      renderAnswer(data.final_answer || '');
+
+      // Auto-switch to Answer tab
+      switchTab('answer');
+
+    } catch (e) {
+      clearTimeout(stepTimer);
+      clearTimeout(step2Timer);
+      showError('Network error — is the server running?');
+    }
+  });
+</script>
+</body>
+</html>
