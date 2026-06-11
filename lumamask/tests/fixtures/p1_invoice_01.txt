@@ -1,0 +1,36 @@
+INVOICE
+
+Issued by:   Hartwell Consulting Group Inc.
+             88 Ridgewood Avenue, Suite 400
+             Toronto, ON  M5H 2N2
+             billing@hartwellcg.com
+             +1 (416) 555-0192
+
+Bill To:     Mr. Jonathan Adler
+             Adler & Marsh Financial Services Ltd.
+             220 King Street West, Floor 12
+             Toronto, ON  M5H 1K7
+             jadler@adlermarsh.com
+
+Invoice No.: INV-00847
+Invoice Date: March 14, 2025
+Due Date: April 13, 2025
+Payment Terms: Net 30
+
+-----------------------------------------------------------------
+Description                          Qty    Unit Price    Amount
+-----------------------------------------------------------------
+Strategic Advisory — Q1 2025           1    $12,500.00   $12,500.00
+Financial Model Review                 2     $3,200.00    $6,400.00
+Board Presentation Deck                1     $4,800.00    $4,800.00
+-----------------------------------------------------------------
+                                             Subtotal:   $23,700.00
+                                                  HST:    $3,081.00
+                                            TOTAL DUE:   $26,781.00
+-----------------------------------------------------------------
+
+Please remit payment to:
+  Account: 0047821963
+  Bank: Royal Bank of Canada
+
+Questions? Contact Sarah Whitmore at s.whitmore@hartwellcg.com or +1 (416) 555-0193.

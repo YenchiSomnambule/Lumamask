@@ -1,0 +1,39 @@
+TAX INVOICE
+
+Supplier:    Greenfield Media Group
+             44 Spadina Avenue, Studio 3
+             Toronto, ON  M5V 2H4
+             finance@greenfieldmedia.ca
+             +1 (416) 555-0239
+
+Billed To:   Mr. Patrick O'Brien
+             O'Brien & Stafford Communications
+             199 Bay Street, Suite 4000
+             Toronto, ON  M5L 1A9
+             pobrien@obrienstafford.com
+             +1 (416) 555-0114
+
+Invoice Number: Invoice No. 5583
+Invoice Date: June 3, 2025
+Payment Due: July 3, 2025
+
+Project: Summer Campaign — Brand Refresh
+
+-----------------------------------------------------------------
+Line Item                                             Amount
+-----------------------------------------------------------------
+Brand Strategy Workshop (full day)                  $6,000.00
+Logo & Identity Package                             $4,500.00
+Social Media Asset Production (30 assets)           $3,750.00
+Copywriting — Website (5 pages)                     $2,800.00
+Photography Session (half day)                      $2,200.00
+-----------------------------------------------------------------
+                              Subtotal:            $19,250.00
+                              Discount (5%):        -$962.50
+                              HST (13%):            $2,374.58
+                              TOTAL DUE:           $20,662.08
+-----------------------------------------------------------------
+
+Card on file will be charged. If paying by EFT use Acct # 009934721.
+Questions? Email billing@greenfieldmedia.ca or call +1 (416) 555-0240.
+Prepared by: Samantha Reid, Accounts Manager

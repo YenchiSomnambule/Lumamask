@@ -1,0 +1,41 @@
+SERVICE QUOTATION
+
+Prepared by:  Ironwood IT Solutions Ltd.
+              770 Sherbrooke Street West, Suite 201
+              Montreal, QC  H3A 1G1
+              sales@ironwoodit.ca
+              +1 (514) 555-0643
+
+Prepared for: Ms. Vivienne Lambert
+              Lambert & Dupont Financial Group
+              1000 De La Gauchetière Street West
+              Montreal, QC  H3B 4W5
+              v.lambert@ldfinancial.com
+              +1 (514) 555-0712
+
+Quote Reference: INVOICE #Q-0047
+Issued: May 12, 2025
+Expiry: June 12, 2025
+
+Dear Ms. Lambert,
+
+Thank you for the opportunity to submit this quotation for IT infrastructure
+modernisation on behalf of Lambert & Dupont Financial Group.
+
+-----------------------------------------------------------------
+Deliverable                                Est. Cost
+-----------------------------------------------------------------
+Cloud Migration Assessment (2 weeks)       $7,200.00
+Azure Tenant Setup & Configuration         $4,400.00
+Security Hardening & MFA Rollout           $3,100.00
+Staff Training Program (3 sessions)        $2,700.00
+12-Month Managed Support Agreement        $14,400.00
+-----------------------------------------------------------------
+                              Subtotal:   $31,800.00
+                              QST (9.975%): $3,172.05
+                              GST (5%):    $1,590.00
+                              TOTAL:      $36,562.05
+-----------------------------------------------------------------
+
+This quote is valid for 30 days. To proceed, please sign and return to
+Alexandre Bouchard at a.bouchard@ironwoodit.ca or +1 (514) 555-0644.

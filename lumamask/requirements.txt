@@ -1,0 +1,6 @@
+# If pip dependency conflicts arise (e.g. Presidio requires specific spaCy/pydantic versions),
+# pin versions here with a comment explaining why. Do not fight conflicts silently.
+presidio-analyzer
+presidio-anonymizer
+anthropic
+pytest

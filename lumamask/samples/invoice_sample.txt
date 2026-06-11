@@ -1,0 +1,38 @@
+INVOICE
+
+Vendor:      Maple Ridge Consulting Inc.
+             400 University Avenue, Suite 1200
+             Toronto, ON  M5G 1S5
+             billing@mapleridgeconsulting.ca
+             +1 (416) 555-0180
+
+Client:      Ms. Sandra Holloway
+             Holloway & Partners Legal LLP
+             200 Bay Street, Suite 2700
+             Toronto, ON  M5J 2J1
+             s.holloway@hollowaypartners.ca
+             +1 (647) 555-0312
+
+Invoice No.: INV-00782
+Date:        June 1, 2025
+Due:         July 1, 2025
+Terms:       Net 30
+
+-----------------------------------------------------------------
+Service                          Period         Amount
+-----------------------------------------------------------------
+Strategy Consulting (10 days)    May 2025     $18,500.00
+Document Review & Analysis       May 2025      $4,200.00
+Travel & Expenses                May 2025        $875.00
+-----------------------------------------------------------------
+                                  Subtotal:   $23,575.00
+                                       HST:    $3,064.75
+                                 TOTAL DUE:   $26,639.75
+-----------------------------------------------------------------
+
+Wire transfer details:
+  Account: 7741209356
+  Institution: RBC Royal Bank
+  IBAN: GB82WEST12345698765432
+
+For queries contact: billing@mapleridgeconsulting.ca

@@ -1,0 +1,38 @@
+QUOTATION
+
+From:   Nexbridge Solutions Corp.
+        14 Pemberton Lane, Unit 7
+        Vancouver, BC  V6B 1A3
+        quotes@nexbridge.io
+        +1 (604) 555-0374
+
+Prepared For:
+        Ms. Diana Forsythe
+        Forsythe & Kelley Architecture Inc.
+        701 West Georgia Street
+        Vancouver, BC  V7Y 1C6
+        dforsythe@fkarchitecture.ca
+
+Quote No.:   INVOICE #2291
+Date:        April 2, 2025
+Valid Until: May 2, 2025
+
+Scope of Work:
+Nexbridge Solutions Corp. is pleased to provide the following quote for custom software
+development services requested by Ms. Forsythe on behalf of Forsythe & Kelley Architecture Inc.
+
+-----------------------------------------------------------------
+Item                                    Hours   Rate        Total
+-----------------------------------------------------------------
+Requirements Analysis & Discovery         20   $185.00    $3,700.00
+UI/UX Design (3 screens)                  15   $195.00    $2,925.00
+Backend API Development                   40   $210.00    $8,400.00
+QA & Testing                              10   $165.00    $1,650.00
+-----------------------------------------------------------------
+                                           Subtotal:     $16,675.00
+                                                GST:        $833.75
+                                          TOTAL DUE:     $17,508.75
+-----------------------------------------------------------------
+
+To accept this quote, please contact Marcus Ng at m.ng@nexbridge.io or +1 (604) 555-0375.
+Payment terms: 50% upfront, 50% on delivery.

@@ -1,0 +1,40 @@
+SERVICE QUOTATION
+
+Prepared by:  Brightline Software Solutions Ltd.
+              88 Queens Quay West, Suite 500
+              Toronto, ON  M5J 0B8
+              sales@brightlinesoftware.ca
+              +1 (416) 555-0350
+
+Prepared for: Mr. Derek Ashworth
+              Ashworth & Cole Manufacturing Inc.
+              1500 Steeles Avenue West
+              Concord, ON  L4K 3B9
+              d.ashworth@ashworthcole.com
+              +1 (905) 555-0713
+
+Quote Reference: INVOICE #Q-1148
+Issued: May 15, 2025
+Expiry: June 15, 2025
+
+Dear Mr. Ashworth,
+
+Thank you for the opportunity to quote on the ERP modernisation project for
+Ashworth & Cole Manufacturing Inc.
+
+-----------------------------------------------------------------
+Deliverable                                   Est. Cost
+-----------------------------------------------------------------
+Requirements & Process Mapping (3 weeks)       $9,600.00
+ERP System Configuration & Migration          $22,400.00
+Staff Training (4 sessions × 2 days)           $6,400.00
+Go-Live Support (2 weeks on-site)              $8,000.00
+12-Month Maintenance Agreement                $14,400.00
+-----------------------------------------------------------------
+                               Subtotal:      $60,800.00
+                               HST (13%):      $7,904.00
+                               TOTAL:         $68,704.00
+-----------------------------------------------------------------
+
+This quote is valid for 30 days. To accept, please sign and return to
+Jennifer Lau at j.lau@brightlinesoftware.ca or +1 (416) 555-0351.

@@ -1,0 +1,39 @@
+INVOICE
+
+Vendor:      Coldstream Analytics Inc.
+             200 Bay Street, Tower B, Floor 18
+             Toronto, ON  M5J 2J2
+             accounts@coldstreamanalytics.com
+             +1 (647) 555-0561
+
+Client:      Dr. Elaine Kowalski
+             Kowalski & Vance Management Consulting Ltd.
+             150 King Street West, Suite 310
+             Toronto, ON  M5H 1J9
+             e.kowalski@kvconsulting.com
+             Tel: +1 (416) 555-0882
+
+Invoice No.: INV-01204
+Date: May 1, 2025
+Due: May 31, 2025
+Terms: Net 30
+
+-----------------------------------------------------------------
+Service                              Period        Amount
+-----------------------------------------------------------------
+Data Analytics Platform License      Apr 2025    $5,400.00
+Custom Dashboard Development         Apr 2025    $8,750.00
+Onboarding & Training (2 days)       Apr 2025    $3,200.00
+Support Retainer — April             Apr 2025    $1,500.00
+-----------------------------------------------------------------
+                                      Subtotal:  $18,850.00
+                                           HST:   $2,450.50
+                                     TOTAL DUE:  $21,300.50
+-----------------------------------------------------------------
+
+Wire transfer details:
+  Account: 6612047839
+  Institution: TD Canada Trust
+  IBAN: GB29NWBK60161331926819
+
+For billing queries contact: Jessica Tran, j.tran@coldstreamanalytics.com
