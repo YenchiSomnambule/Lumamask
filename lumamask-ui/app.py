@@ -105,8 +105,5 @@ def run():
             os.environ['ANTHROPIC_API_KEY'] = previous_key
 
 
-if __name__ == '__main__':
-    import webbrowser
-    import threading
-    threading.Timer(1.2, lambda: webbrowser.open('http://localhost:5000')).start()
-    app.run(debug=False, port=5000)
+# Startup is handled by entry.py (for the .exe) or run_ui.bat (for dev).
+# Do not add a __main__ block here.

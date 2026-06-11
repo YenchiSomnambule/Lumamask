@@ -16,6 +16,8 @@ Overlap resolution priority (highest first):
 
 from __future__ import annotations
 
+import os
+
 from presidio_analyzer import AnalyzerEngine, PatternRecognizer, Pattern
 from presidio_analyzer.nlp_engine import NlpEngineProvider
 
@@ -113,12 +115,35 @@ def _get_analyzer() -> AnalyzerEngine:
     """Return the module-level AnalyzerEngine singleton, creating it on first call."""
     global _analyzer
     if _analyzer is None:
-        configuration = {
-            "nlp_engine_name": "spacy",
-            "models": [{"lang_code": "en", "model_name": "en_core_web_md"}],
-        }
-        provider = NlpEngineProvider(nlp_configuration=configuration)
-        nlp_engine = provider.create_engine()
+        spacy_data = os.environ.get("SPACY_DATA")
+        if spacy_data:
+            # Running inside the PyInstaller bundle: load the model directly
+            # from the path embedded by the spec file.
+            import spacy
+            from presidio_analyzer.nlp_engine import SpacyNlpEngine
+            model_path = os.path.join(spacy_data, "en_core_web_md")
+            # Handle versioned install layout (en_core_web_md/en_core_web_md-x.y.z/)
+            if not os.path.isfile(os.path.join(model_path, "config.cfg")):
+                for _sub in os.listdir(model_path):
+                    _candidate = os.path.join(model_path, _sub)
+                    if os.path.isfile(os.path.join(_candidate, "config.cfg")):
+                        model_path = _candidate
+                        break
+            nlp = spacy.load(model_path)
+            # Create engine with correct format, then inject the pre-loaded
+            # model so AnalyzerEngine skips its own load() call (is_loaded
+            # returns True when nlp dict is non-empty).
+            nlp_engine = SpacyNlpEngine(
+                models=[{"lang_code": "en", "model_name": "en_core_web_md"}]
+            )
+            nlp_engine.nlp = {"en": nlp}
+        else:
+            configuration = {
+                "nlp_engine_name": "spacy",
+                "models": [{"lang_code": "en", "model_name": "en_core_web_md"}],
+            }
+            provider = NlpEngineProvider(nlp_configuration=configuration)
+            nlp_engine = provider.create_engine()
 
         _analyzer = AnalyzerEngine(
             nlp_engine=nlp_engine,
