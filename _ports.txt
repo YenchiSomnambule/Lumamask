@@ -1,0 +1,4 @@
+===== LISTENING ports 5000-5099 ===== 
+  TCP    0.0.0.0:5040           0.0.0.0:0              LISTENING       5572
+ 
+===== python processes ===== 

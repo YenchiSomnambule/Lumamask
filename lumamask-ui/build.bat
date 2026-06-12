@@ -23,7 +23,7 @@ if errorlevel 1 (
 )
 
 echo [3/3] Building Lumamask.exe (this takes 3-5 minutes)...
-pyinstaller lumamask.spec --clean --noconfirm
+python -m PyInstaller lumamask.spec --clean --noconfirm
 if errorlevel 1 (
     echo ERROR: PyInstaller build failed.
     pause
