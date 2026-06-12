@@ -7,7 +7,7 @@ echo.
 cd /d "%~dp0"
 
 echo [1/3] Installing build dependencies...
-pip install pyinstaller pywebview --quiet
+pip install "pyinstaller>=6.0" pywebview platformdirs jaraco.text more-itertools --quiet
 if errorlevel 1 (
     echo ERROR: pip install failed.
     pause

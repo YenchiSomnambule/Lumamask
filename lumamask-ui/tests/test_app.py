@@ -7,12 +7,18 @@ run_pipeline is mocked throughout; no spaCy detection or network calls happen.
 from __future__ import annotations
 
 import os
+import sys
 from unittest.mock import patch
 
 import pytest
 
 import app as app_module
-from app import app, count_possible_misses, summarise_detections
+from app import (
+    app,
+    count_possible_misses,
+    find_available_port,
+    summarise_detections,
+)
 
 
 FAKE_RESULT = {
@@ -199,6 +205,76 @@ class TestErrorsAndEnv:
             assert os.environ["ANTHROPIC_API_KEY"] == "operator-key"
         finally:
             os.environ.pop("ANTHROPIC_API_KEY", None)
+
+    def test_unexpected_exception_returns_json_500(self, client):
+        """Never leak a raw HTML 500 page (blueprint §12.4)."""
+        with patch.object(app_module, "run_pipeline",
+                          side_effect=KeyError("totally unexpected")):
+            res = client.post("/api/run", json=VALID_PAYLOAD)
+        assert res.status_code == 500
+        data = res.get_json()
+        assert data is not None
+        assert "error" in data
+        # Generic message — must not echo internals or the API key
+        assert "sk-ant" not in data["error"]
+        assert "totally unexpected" not in data["error"]
+
+    def test_env_clean_after_unexpected_exception(self, client):
+        os.environ.pop("ANTHROPIC_API_KEY", None)
+        with patch.object(app_module, "run_pipeline",
+                          side_effect=KeyError("boom")):
+            client.post("/api/run", json=VALID_PAYLOAD)
+        assert "ANTHROPIC_API_KEY" not in os.environ
+
+
+# ---------------------------------------------------------------------------
+# find_available_port
+# ---------------------------------------------------------------------------
+
+class TestFindAvailablePort:
+
+    def test_returns_a_bindable_port(self):
+        import socket
+        port = find_available_port()
+        with socket.socket() as s:
+            s.bind(("127.0.0.1", port))  # must not raise
+
+    def test_falls_back_when_preferred_port_is_taken(self):
+        import socket
+        with socket.socket() as blocker:
+            blocker.bind(("127.0.0.1", 0))
+            taken = blocker.getsockname()[1]
+            blocker.listen(1)
+            port = find_available_port(preferred=taken)
+        assert port != taken
+
+    def test_uses_preferred_port_when_free(self):
+        import socket
+        # Find a free port first, then ask for it as preferred
+        with socket.socket() as probe:
+            probe.bind(("127.0.0.1", 0))
+            free = probe.getsockname()[1]
+        assert find_available_port(preferred=free) == free
+
+
+# ---------------------------------------------------------------------------
+# start_prewarm_thread
+# ---------------------------------------------------------------------------
+
+class TestPrewarm:
+
+    def test_starts_daemon_thread_that_runs_prewarm(self):
+        import threading
+        called = threading.Event()
+        with patch.object(app_module, "_prewarm", called.set):
+            t = app_module.start_prewarm_thread()
+            assert t.daemon is True
+            assert called.wait(timeout=5.0)
+
+    def test_prewarm_swallows_failures(self):
+        """A broken analyzer load must not crash the thread."""
+        with patch.dict(sys.modules, {"lumamask.detect": None}):
+            app_module._prewarm()  # must not raise
 
 
 # ---------------------------------------------------------------------------

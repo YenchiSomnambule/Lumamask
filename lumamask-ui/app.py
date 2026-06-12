@@ -1,6 +1,9 @@
 import os
 import re
+import socket
 import sys
+import threading
+import traceback
 
 from flask import Flask, request, jsonify, render_template
 
@@ -11,6 +14,11 @@ from lumamask.pipeline import run_pipeline
 app = Flask(__name__)
 
 MAX_SAMPLES_PER_TYPE = 5
+DEFAULT_PORT = 5000
+
+# The Flask dev server is threaded; ANTHROPIC_API_KEY lives in process-global
+# os.environ, so concurrent /api/run requests must not interleave.
+_pipeline_lock = threading.Lock()
 
 # Conservative residual-PII patterns, run against the MASKED text. Anything
 # already tokenised ([AMT_1] etc.) cannot match. Covers the documented
@@ -61,6 +69,40 @@ def summarise_detections(pmap: dict) -> tuple[dict, dict]:
     return counts, samples
 
 
+def find_available_port(preferred: int = DEFAULT_PORT) -> int:
+    """Return *preferred* if free, else an OS-assigned free port.
+
+    Binding to an already-used port would make the window/browser show
+    whatever foreign app owns it — always verify before serving.
+    """
+    for candidate in (preferred, 0):
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+                s.bind(('127.0.0.1', candidate))
+                return s.getsockname()[1]
+        except OSError:
+            continue
+    raise RuntimeError('No free TCP port available on 127.0.0.1')
+
+
+def _prewarm() -> None:
+    """Load the spaCy model so the first /api/run doesn't pay the 3-5s cost."""
+    try:
+        from lumamask.detect import _get_analyzer
+        _get_analyzer()
+    except Exception:
+        # Best-effort only; a failure here will resurface on the first request
+        # with a proper error message.
+        pass
+
+
+def start_prewarm_thread() -> threading.Thread:
+    t = threading.Thread(target=_prewarm, daemon=True)
+    t.start()
+    return t
+
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -80,30 +122,41 @@ def run():
     if not instruction:
         return jsonify({'error': 'Instruction is required'}), 400
 
-    previous_key = os.environ.get('ANTHROPIC_API_KEY')
-    os.environ['ANTHROPIC_API_KEY'] = api_key
-    try:
-        result = run_pipeline(text, instruction)
-        counts, samples = summarise_detections(result['map'])
+    with _pipeline_lock:
+        previous_key = os.environ.get('ANTHROPIC_API_KEY')
+        os.environ['ANTHROPIC_API_KEY'] = api_key
+        try:
+            result = run_pipeline(text, instruction)
+            counts, samples = summarise_detections(result['map'])
 
-        return jsonify({
-            'detection_summary': counts,
-            'detection_samples': samples,
-            'possible_misses': count_possible_misses(result['masked']),
-            'masked': result['masked'],
-            'ai_reply_masked': result['ai_reply_tokenised'],
-            'final_answer': result['ai_reply_restored'],
-        })
-    except ValueError as e:
-        return jsonify({'error': str(e)}), 400
-    except RuntimeError as e:
-        return jsonify({'error': str(e)}), 502
-    finally:
-        if previous_key is None:
-            os.environ.pop('ANTHROPIC_API_KEY', None)
-        else:
-            os.environ['ANTHROPIC_API_KEY'] = previous_key
+            return jsonify({
+                'detection_summary': counts,
+                'detection_samples': samples,
+                'possible_misses': count_possible_misses(result['masked']),
+                'masked': result['masked'],
+                'ai_reply_masked': result['ai_reply_tokenised'],
+                'final_answer': result['ai_reply_restored'],
+            })
+        except ValueError as e:
+            return jsonify({'error': str(e)}), 400
+        except RuntimeError as e:
+            return jsonify({'error': str(e)}), 502
+        except Exception:
+            # Never leak a raw HTML 500 (or the API key) to the client.
+            traceback.print_exc()
+            return jsonify({'error': 'Internal server error — see server log.'}), 500
+        finally:
+            if previous_key is None:
+                os.environ.pop('ANTHROPIC_API_KEY', None)
+            else:
+                os.environ['ANTHROPIC_API_KEY'] = previous_key
 
 
-# Startup is handled by entry.py (for the .exe) or run_ui.bat (for dev).
-# Do not add a __main__ block here.
+if __name__ == '__main__':
+    # Dev mode (run_ui.bat): serve in a browser tab.
+    # The packaged exe uses entry.py instead, which imports this module.
+    import webbrowser
+    port = find_available_port()
+    start_prewarm_thread()
+    threading.Timer(1.2, lambda: webbrowser.open(f'http://localhost:{port}')).start()
+    app.run(host='127.0.0.1', port=port, debug=False)

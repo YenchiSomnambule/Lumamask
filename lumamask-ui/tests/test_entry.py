@@ -196,38 +196,41 @@ class TestMain:
         srv.listen(1)
         return srv, port
 
+    def _patch_app(self, monkeypatch, port=5099):
+        import app
+        monkeypatch.setattr(app, "find_available_port", lambda preferred=5000: port)
+        monkeypatch.setattr(app, "start_prewarm_thread", lambda: None)
+
     def test_main_opens_window_when_server_ready(self, monkeypatch):
         import entry
         webview_mock = MagicMock()
 
-        srv, port = self._make_server()
-        try:
-            monkeypatch.setattr(entry, "_configure_spacy", lambda: None)
-            monkeypatch.setattr(entry, "_add_lumamask_src", lambda: None)
-            monkeypatch.setattr(entry, "_start_flask", lambda: None)
-            monkeypatch.setattr(
-                entry, "_wait_for_flask",
-                lambda host="127.0.0.1", port=5000, timeout=30.0: True,
-            )
-            with patch.dict("sys.modules", {"webview": webview_mock}):
-                entry.main()
-        finally:
-            srv.close()
+        self._patch_app(monkeypatch)
+        monkeypatch.setattr(entry, "_configure_spacy", lambda: None)
+        monkeypatch.setattr(entry, "_add_lumamask_src", lambda: None)
+        monkeypatch.setattr(entry, "_start_flask", lambda port: None)
+        monkeypatch.setattr(
+            entry, "_wait_for_flask",
+            lambda host="127.0.0.1", port=5000, timeout=30.0: True,
+        )
+        with patch.dict("sys.modules", {"webview": webview_mock}):
+            entry.main()
 
         webview_mock.create_window.assert_called_once()
         webview_mock.start.assert_called_once()
+        # Window must point at the dynamically chosen port
+        url = webview_mock.create_window.call_args[0][1]
+        assert url == "http://127.0.0.1:5099"
 
     def test_main_calls_sys_exit_when_server_fails(self, monkeypatch):
         import entry
         webview_mock = MagicMock()
 
+        self._patch_app(monkeypatch)
         monkeypatch.setattr(entry, "_configure_spacy", lambda: None)
         monkeypatch.setattr(entry, "_add_lumamask_src", lambda: None)
-        monkeypatch.setattr(entry, "_start_flask", lambda: None)
-        monkeypatch.setattr(
-            entry, "_wait_for_flask",
-            lambda **kw: False,
-        )
+        monkeypatch.setattr(entry, "_start_flask", lambda port: None)
+        monkeypatch.setattr(entry, "_wait_for_flask", lambda **kw: False)
         monkeypatch.setattr(entry, "_show_error", lambda msg: None)
 
         with patch.dict("sys.modules", {"webview": webview_mock}):
@@ -235,3 +238,43 @@ class TestMain:
                 entry.main()
         assert exc.value.code == 1
         webview_mock.start.assert_not_called()
+
+    def test_main_no_gui_mode_skips_webview(self, monkeypatch, capsys):
+        """LUMAMASK_NO_GUI=1 serves Flask until killed; webview never loads."""
+        import entry
+        webview_mock = MagicMock()
+        server_thread = MagicMock()
+
+        self._patch_app(monkeypatch)
+        monkeypatch.setenv("LUMAMASK_NO_GUI", "1")
+        monkeypatch.setattr(entry, "_configure_spacy", lambda: None)
+        monkeypatch.setattr(entry, "_add_lumamask_src", lambda: None)
+        monkeypatch.setattr(entry, "_start_flask", lambda port: server_thread)
+        monkeypatch.setattr(entry, "_wait_for_flask", lambda **kw: True)
+
+        with patch.dict("sys.modules", {"webview": webview_mock}):
+            entry.main()
+
+        server_thread.join.assert_called_once()
+        webview_mock.create_window.assert_not_called()
+        assert "no-GUI mode" in capsys.readouterr().out
+
+    def test_main_shows_error_when_webview_fails(self, monkeypatch):
+        """Missing WebView2 runtime → friendly dialog + exit 1, not a traceback."""
+        import entry
+        webview_mock = MagicMock()
+        webview_mock.start.side_effect = RuntimeError("no GUI backend")
+        errors = []
+
+        self._patch_app(monkeypatch)
+        monkeypatch.setattr(entry, "_configure_spacy", lambda: None)
+        monkeypatch.setattr(entry, "_add_lumamask_src", lambda: None)
+        monkeypatch.setattr(entry, "_start_flask", lambda port: None)
+        monkeypatch.setattr(entry, "_wait_for_flask", lambda **kw: True)
+        monkeypatch.setattr(entry, "_show_error", errors.append)
+
+        with patch.dict("sys.modules", {"webview": webview_mock}):
+            with pytest.raises(SystemExit) as exc:
+                entry.main()
+        assert exc.value.code == 1
+        assert any("window" in e.lower() for e in errors)

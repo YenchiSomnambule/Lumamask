@@ -27,11 +27,11 @@ def _add_lumamask_src():
         sys.path.insert(0, src)
 
 
-def _start_flask() -> threading.Thread:
+def _start_flask(port: int) -> threading.Thread:
     import app as flask_app
     t = threading.Thread(
         target=lambda: flask_app.app.run(
-            host="127.0.0.1", port=5000, debug=False, use_reloader=False
+            host="127.0.0.1", port=port, debug=False, use_reloader=False
         ),
         daemon=True,
     )
@@ -67,23 +67,47 @@ def main() -> None:
     _configure_spacy()
     _add_lumamask_src()
 
-    _start_flask()
+    # Importing app also makes its helpers available; do it once here.
+    import app as flask_app
 
-    if not _wait_for_flask():
+    port = flask_app.find_available_port()
+    server_thread = _start_flask(port)
+
+    if not _wait_for_flask(port=port):
         _show_error("Failed to start local server. Please try again.")
         sys.exit(1)
 
-    import webview
+    # Load the spaCy model in the background while the window opens, so the
+    # first Run click doesn't stall for several seconds.
+    flask_app.start_prewarm_thread()
 
-    window = webview.create_window(
-        "Lumamask",
-        "http://127.0.0.1:5000",
-        width=1280,
-        height=820,
-        resizable=True,
-        min_size=(900, 600),
-    )
-    webview.start()
+    if os.environ.get("LUMAMASK_NO_GUI"):
+        # Headless mode: serve in the browser / over HTTP until killed.
+        # Useful when no GUI backend is available, and for smoke-testing
+        # the frozen bundle in CI.
+        print(f"Lumamask running at http://127.0.0.1:{port} (no-GUI mode)")
+        server_thread.join()
+        return
+
+    try:
+        import webview
+        webview.create_window(
+            "Lumamask",
+            f"http://127.0.0.1:{port}",
+            width=1280,
+            height=820,
+            resizable=True,
+            min_size=(900, 600),
+        )
+        webview.start()
+    except Exception as exc:
+        _show_error(
+            "Failed to open the application window.\n"
+            f"({exc})\n\n"
+            "On Windows, make sure the Microsoft Edge WebView2 runtime "
+            "is installed."
+        )
+        sys.exit(1)
     # Flask daemon thread exits automatically when the main thread ends.
 
 

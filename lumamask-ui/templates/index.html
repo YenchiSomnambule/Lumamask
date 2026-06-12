@@ -582,7 +582,7 @@
   }
   function highlightTokens(text) {
     return escapeHtml(text).replace(
-      /\[([A-Z_]+)_(\d+)\]/g,
+      TOKEN_RE,
       (_, type, n) =>
         `<span class="token token-${type.toLowerCase()}">[${type}_${n}]</span>`
     );
@@ -751,9 +751,30 @@
   }
 
   // ── Copy / Save ──
-  document.getElementById('copy-btn').addEventListener('click', () => {
+  function fallbackCopy(text) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); } catch (e) {}
+    document.body.removeChild(ta);
+  }
+
+  const copyBtn = document.getElementById('copy-btn');
+  copyBtn.addEventListener('click', () => {
     const text = document.getElementById('answer-text').textContent;
-    navigator.clipboard.writeText(text).catch(() => {});
+    const done = () => {
+      copyBtn.textContent = 'Copied ✓';
+      setTimeout(() => { copyBtn.textContent = 'Copy'; }, 1500);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done, () => { fallbackCopy(text); done(); });
+    } else {
+      fallbackCopy(text);
+      done();
+    }
   });
 
   document.getElementById('save-btn').addEventListener('click', () => {

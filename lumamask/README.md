@@ -155,12 +155,29 @@ allows it in future.
 
 ---
 
+## Desktop / Web UI
+
+A Flask + native-window UI lives in [`../lumamask-ui/`](../lumamask-ui/)
+(added after the CLI MVP — see `UI_BLUEPRINT.md` and `../EXE_BLUEPRINT.md`):
+
+- **Dev mode (browser):** double-click `lumamask-ui/run_ui.bat`
+  (or `python app.py`) — opens `http://localhost:5000`.
+- **Standalone exe (no Python needed):** double-click `lumamask-ui/build.bat`
+  on a Windows machine with the dependencies installed; output is
+  `lumamask-ui/dist/Lumamask.exe` (~300–500 MB, native window via WebView2).
+- `LUMAMASK_NO_GUI=1 Lumamask.exe` serves HTTP only (no window) — useful
+  headless or for smoke tests.
+
+The UI never sends the placeholder map to the browser and keeps the API key
+in process memory only.
+
+---
+
 ## Scope — what is intentionally NOT included
 
-The following are deliberately out of scope for this MVP and should not be added
+The following are deliberately out of scope and should not be added
 without a new design phase:
 
-- **GUI or web interface** — CLI only.
 - **Multiple AI providers** — Claude only; the model string is a single constant.
 - **PDF, Word, or other file formats** — `.txt` input only.
 - **Database or persistent storage** — no state is saved between runs.
@@ -174,7 +191,8 @@ These are all candidates for future phases.
 ## Running the tests
 
 ```bash
-pytest -v
+pytest -v                  # core suite (this directory)
+pytest -v ../lumamask-ui   # UI backend + exe entry-point suite
 ```
 
-36 tests, no network calls required (the LLM is mocked in all tests).
+No network calls required (the LLM is mocked in all tests).
