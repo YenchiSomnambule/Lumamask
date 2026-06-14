@@ -21,6 +21,9 @@ datas = [
 datas += collect_data_files("presidio_analyzer")
 datas += collect_data_files("presidio_anonymizer")
 
+# python-docx bundles a default template under docx/templates/
+datas += collect_data_files("docx")
+
 # ── hidden imports PyInstaller won't discover automatically ──────────────────
 hiddenimports = [
     # presidio
@@ -46,6 +49,14 @@ hiddenimports = [
     # anthropic SDK
     "anthropic",
     "httpx",
+    # document text extraction (Upload feature — extract.py)
+    "pypdf",
+    "docx",
+    "striprtf",
+    "striprtf.striprtf",
+    "lxml",          # python-docx parses the .docx XML via lxml
+    "lxml.etree",
+    "lxml._elementpath",
     # standard lib
     "tkinter",
     "tkinter.messagebox",
