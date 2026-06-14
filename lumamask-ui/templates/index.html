@@ -465,8 +465,9 @@
       <!-- Document -->
       <div class="field">
         <label class="field-label">Document</label>
-        <button class="upload-btn" id="upload-btn" type="button">↑ Upload .txt</button>
-        <input type="file" id="file-input" accept=".txt">
+        <button class="upload-btn" id="upload-btn" type="button">↑ Upload file</button>
+        <input type="file" id="file-input"
+               accept=".txt,.text,.md,.markdown,.csv,.tsv,.log,.rst,.pdf,.docx,.rtf">
         <textarea id="doc-textarea" placeholder="Paste or type document here…"></textarea>
       </div>
 
@@ -602,17 +603,39 @@
   });
 
   // ── File upload ──
+  // Binary formats (PDF/DOCX/RTF) can't be read with FileReader, so every
+  // upload goes to the backend /api/extract, which returns plain text. The
+  // text lands in the box for review; nothing is sent to Claude until Run.
   const uploadBtn = document.getElementById('upload-btn');
   const fileInput = document.getElementById('file-input');
   const docTextarea = document.getElementById('doc-textarea');
+  const uploadLabel = uploadBtn.textContent;
   uploadBtn.addEventListener('click', () => fileInput.click());
-  fileInput.addEventListener('change', () => {
+  fileInput.addEventListener('change', async () => {
     const file = fileInput.files[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = e => { docTextarea.value = e.target.result; };
-    reader.readAsText(file);
-    fileInput.value = '';
+    fileInput.value = '';   // let the user re-pick the same file later
+
+    uploadBtn.disabled = true;
+    uploadBtn.textContent = 'Reading…';
+    try {
+      const form = new FormData();
+      form.append('file', file);
+      const res = await fetch('/api/extract', { method: 'POST', body: form });
+      const data = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+      if (!res.ok) {
+        showError(data.error || `Could not read file (HTTP ${res.status}).`);
+      } else {
+        docTextarea.value = data.text || '';
+        errorMsg.classList.remove('visible');
+        docTextarea.focus();
+      }
+    } catch (e) {
+      showError('Network error while reading the file.');
+    } finally {
+      uploadBtn.disabled = false;
+      uploadBtn.textContent = uploadLabel;
+    }
   });
 
   // ── Tabs ──

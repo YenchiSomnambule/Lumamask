@@ -6,6 +6,7 @@ run_pipeline is mocked throughout; no spaCy detection or network calls happen.
 
 from __future__ import annotations
 
+import io
 import os
 import sys
 from unittest.mock import patch
@@ -340,3 +341,70 @@ class TestSummariseDetections:
         counts, samples = summarise_detections({"entries": []})
         assert counts == {}
         assert samples == {}
+
+
+# ---------------------------------------------------------------------------
+# POST /api/extract — file upload → plain text
+# ---------------------------------------------------------------------------
+
+class TestExtractEndpoint:
+    """Endpoint wiring and error-code mapping. Format-specific extraction is
+    covered exhaustively in test_extract.py against the standalone module."""
+
+    @staticmethod
+    def _upload(client, data: bytes, filename: str):
+        return client.post(
+            "/api/extract",
+            data={"file": (io.BytesIO(data), filename)},
+            content_type="multipart/form-data",
+        )
+
+    def test_plaintext_upload_returns_text(self, client):
+        res = self._upload(client, b"Invoice for Acme Corp.", "notes.txt")
+        assert res.status_code == 200
+        data = res.get_json()
+        assert data["text"] == "Invoice for Acme Corp."
+        assert data["filename"] == "notes.txt"
+
+    def test_no_file_returns_400(self, client):
+        res = client.post("/api/extract", data={}, content_type="multipart/form-data")
+        assert res.status_code == 400
+        assert "No file" in res.get_json()["error"]
+
+    def test_unsupported_type_returns_400(self, client):
+        res = self._upload(client, b"\x00\x01binary", "image.png")
+        assert res.status_code == 400
+        assert "Unsupported file type" in res.get_json()["error"]
+
+    def test_empty_file_maps_extraction_error_to_400(self, client):
+        res = self._upload(client, b"", "blank.txt")
+        assert res.status_code == 400
+        # Empty multipart part → no filename OR empty data; either way a 400.
+        assert "error" in res.get_json()
+
+    def test_does_not_require_detection_engine(self, client):
+        """Upload/extract must work even when the NLP pipeline failed to load."""
+        with patch.object(app_module, "run_pipeline", None):
+            res = self._upload(client, b"plain text", "a.md")
+        assert res.status_code == 200
+        assert res.get_json()["text"] == "plain text"
+
+
+# ---------------------------------------------------------------------------
+# POST /api/run — detection engine unavailable
+# ---------------------------------------------------------------------------
+
+class TestEngineUnavailable:
+
+    def test_returns_500_when_pipeline_missing(self, client):
+        with patch.object(app_module, "run_pipeline", None):
+            res = client.post("/api/run", json=VALID_PAYLOAD)
+        assert res.status_code == 500
+        assert "Detection engine" in res.get_json()["error"]
+
+    def test_env_clean_when_pipeline_missing(self, client):
+        os.environ.pop("ANTHROPIC_API_KEY", None)
+        with patch.object(app_module, "run_pipeline", None):
+            client.post("/api/run", json=VALID_PAYLOAD)
+        # Guard fires before the env key is ever set.
+        assert "ANTHROPIC_API_KEY" not in os.environ

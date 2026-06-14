@@ -1,0 +1,23 @@
+# lumamask-ui dependencies.
+#
+# These are IN ADDITION to ../lumamask/requirements.txt, which provides
+# presidio-analyzer / presidio-anonymizer / anthropic for the detection + LLM
+# pipeline that /api/run calls. Install both:
+#
+#     pip install -r ../lumamask/requirements.txt
+#     pip install -r requirements.txt
+
+# Web backend
+flask
+
+# Document text extraction for the Upload feature (POST /api/extract).
+# Each parser is imported lazily in extract.py, so a missing one disables only
+# its own format — every other format (and the rest of the app) keeps working.
+pypdf          # .pdf
+python-docx    # .docx (Word)
+striprtf       # .rtf
+# .txt/.md/.csv/.tsv/.log/.rst need no extra package (decoded directly).
+
+# Build-only (packaging the desktop exe — see EXE_BLUEPRINT.md / build.bat):
+#   pyinstaller
+#   pywebview
