@@ -148,8 +148,12 @@ allows it in future.
   `--save-map`) links every token to its real value. Treat it with the same care as
   the original document — do not commit it to version control (`.gitignore` already
   excludes `*.map.json`) and delete it when no longer needed.
-- **Only `.txt` files are supported.** PDF, Word, and other formats are out of scope
-  for this MVP.
+- **CLI input is `.txt` only.** The command-line tool reads plain-text files. The
+  **desktop / web UI** additionally accepts uploads of PDF, Word (`.docx`), RTF,
+  Markdown, CSV and other plain-text formats — it extracts the text locally (the
+  file bytes never leave your machine and are not written to disk) and drops it
+  into the document box for you to review before running. Scanned/image-only PDFs
+  have no selectable text and are not supported (no OCR).
 - **English only.** The spaCy model and custom recognizers are tuned for English
   business text.
 
@@ -168,6 +172,14 @@ A Flask + native-window UI lives in [`../lumamask-ui/`](../lumamask-ui/)
 - `LUMAMASK_NO_GUI=1 Lumamask.exe` serves HTTP only (no window) — useful
   headless or for smoke tests.
 
+**File upload (UI only).** The Upload button accepts `.txt`, `.md`, `.markdown`,
+`.csv`, `.tsv`, `.log`, `.rst`, `.pdf`, `.docx` and `.rtf`. Uploaded files are
+parsed in-process by the backend (`POST /api/extract`) and only the extracted
+text is returned to the page — nothing is written to disk. The parser libraries
+(`pypdf`, `python-docx`, `striprtf`) are imported lazily, so a missing one
+disables only its own format. UI dependencies are listed in
+`lumamask-ui/requirements.txt`.
+
 The UI never sends the placeholder map to the browser and keeps the API key
 in process memory only.
 
@@ -179,7 +191,8 @@ The following are deliberately out of scope and should not be added
 without a new design phase:
 
 - **Multiple AI providers** — Claude only; the model string is a single constant.
-- **PDF, Word, or other file formats** — `.txt` input only.
+- **CLI file formats** — the command-line tool takes `.txt` input only. (The UI
+  accepts PDF/Word/RTF/Markdown/CSV uploads; see "File upload" above.)
 - **Database or persistent storage** — no state is saved between runs.
 - **User accounts or authentication** — the API key comes from the environment.
 - **Batch processing** — one file per invocation.

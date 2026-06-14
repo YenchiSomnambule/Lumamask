@@ -7,11 +7,25 @@ import traceback
 
 from flask import Flask, request, jsonify, render_template
 
+import extract
+from extract import ExtractionError
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'lumamask'))
 
-from lumamask.pipeline import run_pipeline
+# The detection pipeline pulls in presidio + spaCy — heavy, and only needed
+# once the user clicks Run. Keep this import resilient so the web server, the
+# page itself, and the file-upload/extract endpoint still come up when the NLP
+# stack isn't installed; /api/run then reports the missing engine clearly
+# instead of the whole app failing to import.
+try:
+    from lumamask.pipeline import run_pipeline
+except Exception:  # pragma: no cover - depends on the runtime environment
+    run_pipeline = None
 
 app = Flask(__name__)
+# Reject oversized uploads at the WSGI layer (a little headroom over the
+# per-file cap for multipart framing); the 413 handler renders it as JSON.
+app.config['MAX_CONTENT_LENGTH'] = extract.MAX_UPLOAD_BYTES + (1 * 1024 * 1024)
 
 MAX_SAMPLES_PER_TYPE = 5
 DEFAULT_PORT = 5000
@@ -108,6 +122,39 @@ def index():
     return render_template('index.html')
 
 
+@app.errorhandler(413)
+def _too_large(_err):
+    """Render Flask's oversized-upload rejection as JSON, not an HTML page."""
+    mb = extract.MAX_UPLOAD_BYTES // (1024 * 1024)
+    return jsonify({'error': f'File is too large (limit {mb} MB).'}), 413
+
+
+@app.route('/api/extract', methods=['POST'])
+def api_extract():
+    """Extract plain text from a single uploaded document file.
+
+    The bytes are parsed in-process and only the resulting text is returned —
+    nothing is written to disk, and the detection/LLM pipeline is not involved
+    here. The text lands in the document box; the user reviews it and then
+    clicks Run, which goes through /api/run exactly as pasted text would.
+    """
+    uploaded = request.files.get('file')
+    if uploaded is None or not uploaded.filename:
+        return jsonify({'error': 'No file uploaded.'}), 400
+
+    try:
+        text = extract.extract_text(uploaded.filename, uploaded.read())
+    except ExtractionError as e:
+        # Expected, user-actionable failures (bad format, corrupt file, etc.)
+        return jsonify({'error': str(e)}), 400
+    except Exception:
+        # Never leak a raw traceback to the client.
+        traceback.print_exc()
+        return jsonify({'error': 'Could not read the uploaded file.'}), 500
+
+    return jsonify({'text': text, 'filename': uploaded.filename})
+
+
 @app.route('/api/run', methods=['POST'])
 def run():
     data = request.get_json(silent=True) or {}
@@ -123,6 +170,11 @@ def run():
         return jsonify({'error': 'Instruction is required'}), 400
 
     with _pipeline_lock:
+        if run_pipeline is None:
+            return jsonify({
+                'error': 'Detection engine is unavailable — the server is '
+                         'missing its NLP dependencies (presidio / spaCy).'
+            }), 500
         previous_key = os.environ.get('ANTHROPIC_API_KEY')
         os.environ['ANTHROPIC_API_KEY'] = api_key
         try:
